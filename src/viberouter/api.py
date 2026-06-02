@@ -343,6 +343,48 @@ async def prometheus_metrics():
     return Response(content="\n".join(lines) + "\n", media_type="text/plain")
 
 
+# ─── Streaming ────────────────────────────────────────────────────────
+
+class StreamRequest(BaseModel):
+    prompt: str
+    context_length: int = 0
+    stream: bool = True
+
+
+@app.post("/stream")
+async def stream_route(request: StreamRequest):
+    """Route a prompt and stream response from the target node."""
+    from fastapi.responses import StreamingResponse
+
+    if not router_instance:
+        raise HTTPException(status_code=503, detail="Router not initialized")
+
+    try:
+        result = router_instance.route(request.prompt, request.context_length)
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        node_name = result["node"]
+        client = router_instance.clients[node_name]
+
+        async def generate():
+            try:
+                # Build messages from prompt
+                messages = [{"role": "user", "content": request.prompt}]
+                async for chunk in client.chat_stream(messages, temperature=0.7):
+                    yield f"data: {chunk}\n\n"
+            finally:
+                router_instance.release_load(node_name)
+
+        return StreamingResponse(generate(), media_type="text/event-stream")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Stream error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ─── Dashboard ─────────────────────────────────────────────────────────
 
 @app.get("/")

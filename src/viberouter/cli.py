@@ -264,5 +264,24 @@ def logs():
         console.print("\n[yellow]Stopped log stream.[/yellow]")
 
 
+@app.command()
+def gb10_config(path: str = typer.Option("config.yaml", "--path", "-p", help="Output config file path")):
+    """Auto-detect GB10 nodes and generate config.yaml."""
+    from .gb10_config import detect_local_gpus, generate_config
+
+    console.print("[bold cyan]🔍 Detecting GB10 nodes on local network...[/bold cyan]")
+
+    nodes = detect_local_gpus()
+    if nodes:
+        console.print(f"[bold green]✅ Found {len(nodes)} node(s)[/bold green]")
+        for node in nodes:
+            console.print(f"  • {node['name']}: {node['url']} ({node['model']})")
+
+        result = generate_config(path)
+        console.print(f"\n{Panel.fit(f'[green]📝 {result}[/green]')}")
+    else:
+        console.print("[bold yellow]⚠️  No local nodes detected. Use config.yaml.example as template.[/bold yellow]")
+
+
 if __name__ == "__main__":
     app()

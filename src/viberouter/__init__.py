@@ -6,6 +6,7 @@ __author__ = "4R Consultancy"
 from .core import VibeRouter, CircuitBreaker, AuditEntry, ModelType
 from .config import NodeConfig, RouterConfig
 from .llm_interface import LLMClient
+from .gb10_config import detect_local_gpus, generate_config
 
 __all__ = [
     "VibeRouter",
@@ -15,4 +16,6 @@ __all__ = [
     "NodeConfig",
     "RouterConfig",
     "LLMClient",
+    "detect_local_gpus",
+    "generate_config",
 ]
