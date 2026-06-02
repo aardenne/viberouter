@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════
+# VibeRouter — Configuration
+# ═══════════════════════════════════════════════════
+# Copy to config.yaml and customize for your environment.
+# Environment variables can override any value using VIBEROUTER_ prefix.
+#
+# Usage:
+#   viberouter status     — Check node health
+#   viberouter route "..." — Route a prompt
+#   viberouter benchmark  — Benchmark nodes
+#   uvicorn src.viberouter.api:app --port 8080 — Start API server
+# ═══════════════════════════════════════════════════
+
+# Global settings
+log_level: INFO
+metrics_port: 9090
+dashboard_port: 8080
+
+# Routing strategy options:
+#   weighted_round_robin  — Spread traffic by weight (default)
+#   least_loaded          — Always send to least loaded node
+#   type_preferred        — Route by task type to best-suited node
+strategy: type_preferred
+
+# Auto-fallback settings
+fallback_enabled: true
+fallback_threshold: 3  # Failures before marking node unhealthy
+
+# ─── Node Definitions ──────────────────────────────────────────────
+# Each node represents an LLM endpoint.
+
+nodes:
+  # Primary node: GB10 #2 — Qwen3.6-35B for coding & heavy reasoning
+  - name: gb10-2
+    url: http://localhost:8081
+    model: Qwen3.6-35B-A3B
+    weight: 3            # Gets 3x the traffic of weight-1 nodes
+    max_connections: 8
+    health_check_interval: 15
+    timeout: 60
+
+  # Secondary node: GB10 #1 — Nemotron for vision & low-latency
+  - name: gb10-1
+    url: http://localhost:30000
+    model: Qwen3-Nemotron
+    weight: 2
+    max_connections: 8
+    health_check_interval: 15
+    timeout: 30
+
+  # Optional: third node (Xiaomi API fallback)
+  # - name: xiaomi-fallback
+  #   url: https://api.xiaomi.com/v1
+  #   model: xiaomi-vision-model
+  #   weight: 1
+  #   max_connections: 3
+  #   health_check_interval: 60
+  #   timeout: 120
+  #   api_key: "${VIBEROUTER_XIAOMI_KEY}"
