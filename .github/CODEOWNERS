@@ -1,0 +1,7 @@
+# Code ownership
+# Core modules
+/src/viberouter/core.py aardenne
+/src/viberouter/api.py aardenne
+
+# Documentation
+/README.md aardenne

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeRouter Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .node-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .node-card.healthy {
+            border-color: #22c55e;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+        }
+
+        .node-card.unhealthy {
+            border-color: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+        }
+
+        .node-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-model {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .load-bar {
+            background: #334155;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .load-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #3b82f6);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.healthy {
+            background: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .status-indicator.unhealthy {
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .metrics-panel {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #22c55e, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-network-wired"></i> VibeRouter</h1>
+            <div id="status" class="loading">
+                <i class="fas fa-sync fa-spin"></i> Connecting...
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Node Cards -->
+            <div id="nodes-container" class="grid">
+                <!-- Nodes will be populated here -->
+            </div>
+        </div>
+
+        <div class="metrics-panel">
+            <h2 style="margin-bottom: 1.5rem; color: #94a3b8;">
+                <i class="fas fa-chart-line"></i> Real-time Metrics
+            </h2>
+            <div class="metrics-grid">
+                <div class="metric">
+                    <div class="metric-value" id="total-requests">0</div>
+                    <div class="metric-label">Total Requests</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="total-errors">0</div>
+                    <div class="metric-label">Errors</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="total-tokens">0</div>
+                    <div class="metric-label">Tokens Processed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="healthy-nodes">0</div>
+                    <div class="metric-label">Healthy Nodes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiBaseUrl = window.location.origin;
+        let ws = null;
+
+        function updateDashboard(status) {
+            const nodesContainer = document.getElementById('nodes-container');
+            nodesContainer.innerHTML = '';
+
+            let totalRequests = 0;
+            let totalErrors = 0;
+            let totalTokens = 0;
+
+            for (const [name, info] of Object.entries(status.nodes)) {
+                const nodeCard = document.createElement('div');
+                nodeCard.className = `node-card ${info.healthy ? 'healthy' : 'unhealthy'}`;
+                
+                const loadPercent = Math.min(100, (info.load / info.total_capacity) * 100);
+                
+                nodeCard.innerHTML = `
+                    <div class="card-header">
+                        <div class="node-name">
+                            <span class="status-indicator ${info.healthy ? 'healthy' : 'unhealthy'}"></span>
+                            ${name}
+                        </div>
+                        <div style="color: ${info.healthy ? '#22c55e' : '#ef4444'}">
+                            ${info.healthy ? 'HEALTHY' : 'UNHEALTHY'}
+                        </div>
+                    </div>
+                    <div class="node-model">${info.model}</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">${info.load}</div>
+                            <div class="stat-label">Load</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${info.requests}</div>
+                            <div class="stat-label">Requests</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${info.errors}</div>
+                            <div class="stat-label">Errors</div>
+                        </div>
+                    </div>
+                    <div class="load-bar">
+                        <div class="load-fill" style="width: ${loadPercent}%"></div>
+                    </div>
+                `;
+                
+                nodesContainer.appendChild(nodeCard);
+                totalRequests += info.requests;
+                totalErrors += info.errors;
+                totalTokens += info.tokens || 0;
+            }
+
+            // Update metrics
+            document.getElementById('total-requests').textContent = totalRequests;
+            document.getElementById('total-errors').textContent = totalErrors;
+            document.getElementById('total-tokens').textContent = totalTokens;
+            document.getElementById('healthy-nodes').textContent = status.healthy_count;
+            document.getElementById('status').innerHTML = `<i class="fas fa-check-circle" style="color: #22c55e;"></i> Connected`;
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/health`);
+                const data = await response.json();
+                updateDashboard(data);
+            } catch (error) {
+                console.error('Failed to fetch:', error);
+            }
+        }
+
+        // Connect to WebSocket for real-time updates
+        function connectWebSocket() {
+            const wsUrl = `ws://${window.location.host}/ws/metrics`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onmessage = (event) => {
+                const status = JSON.parse(event.data);
+                updateDashboard(status);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('status').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Connection Lost`;
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket closed, reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // Initialize
+        fetchData();
+        connectWebSocket();
+        setInterval(fetchData, 5000); // Fallback polling every 5 seconds
+    </script>
+</body>
+</html>
