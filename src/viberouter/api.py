@@ -227,7 +227,7 @@ async def update_config(update: ConfigUpdate):
         config.log_level = update.log_level.upper()
 
     logger.info(f"Config updated: strategy={config.strategy}, log_level={config.log_level}")
-    return get_config()
+    return await get_config()
 
 
 @app.post("/config/node")

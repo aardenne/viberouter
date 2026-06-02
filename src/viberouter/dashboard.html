@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeRouter — Live Dashboard</title>
+    <title>VibeRouter — Control Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg-primary: #0a0e1a;
             --bg-secondary: #111827;
             --bg-card: #1a2234;
+            --bg-input: #0d1424;
             --border: #2a3550;
             --text-primary: #e2e8f0;
             --text-secondary: #94a3b8;
@@ -20,299 +21,121 @@
             --accent-purple: #a855f7;
             --accent-cyan: #06b6d4;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             padding: 24px;
         }
-
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
         }
-
         .header h1 {
-            font-size: 28px;
-            font-weight: 700;
+            font-size: 28px; font-weight: 700;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 12px;
         }
-
-        .header h1::before {
-            content: '⚡';
-            -webkit-text-fill-color: initial;
-        }
-
+        .header h1::before { content: '⚡'; -webkit-text-fill-color: initial; }
         .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-card);
-            border-radius: 999px;
-            border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+            background: var(--bg-card); border-radius: 999px; border: 1px solid var(--border);
             font-size: 14px;
         }
-
         .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--accent-green);
+            width: 10px; height: 10px; border-radius: 50%; background: var(--accent-green);
             animation: pulse 2s infinite;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px; }
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            transition: border-color 0.3s;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color 0.3s;
         }
-
-        .card:hover {
-            border-color: var(--accent-blue);
-        }
-
-        .card-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 36px;
-            font-weight: 700;
-        }
-
-        .card-sub {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        .nodes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
+        .card:hover { border-color: var(--accent-blue); }
+        .card-label { font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .card-value { font-size: 36px; font-weight: 700; }
+        .card-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .nodes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px; }
         .node-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
         }
-
-        .node-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .node-name {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .node-status {
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .node-status.healthy {
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--accent-green);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .node-status.unhealthy {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--accent-red);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .node-model {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-        }
-
-        .load-bar-container {
-            margin-bottom: 16px;
-        }
-
-        .load-bar-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            margin-bottom: 6px;
-            color: var(--text-secondary);
-        }
-
-        .load-bar {
-            height: 8px;
-            background: var(--bg-primary);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .load-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease, background 0.3s;
-        }
-
+        .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .node-name { font-size: 18px; font-weight: 600; }
+        .node-status { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .node-status.healthy { background: rgba(34,197,94,0.15); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
+        .node-status.unhealthy { background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+        .node-model { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+        .load-bar-container { margin-bottom: 16px; }
+        .load-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); }
+        .load-bar { height: 8px; background: var(--bg-primary); border-radius: 4px; overflow: hidden; }
+        .load-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease, background 0.3s; }
         .load-bar-fill.low { background: var(--accent-green); }
         .load-bar-fill.medium { background: var(--accent-yellow); }
         .load-bar-fill.high { background: var(--accent-red); }
-
-        .stats-row {
-            display: flex;
-            gap: 16px;
-        }
-
-        .stat-item {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            background: var(--bg-primary);
-            border-radius: 12px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        .chart-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 900px) {
-            .bottom-grid { grid-template-columns: 1fr; }
-        }
-
-        .log-container {
-            background: var(--bg-primary);
-            border-radius: 12px;
-            padding: 16px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 12px;
-            line-height: 1.8;
-        }
-
-        .log-entry {
-            display: flex;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            padding: 4px 0;
-        }
-
-        .log-time {
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
-
-        .log-type {
-            font-weight: 600;
-            min-width: 60px;
-        }
-
+        .stats-row { display: flex; gap: 16px; }
+        .stat-item { flex: 1; text-align: center; padding: 12px; background: var(--bg-primary); border-radius: 12px; }
+        .stat-value { font-size: 20px; font-weight: 600; }
+        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+        .chart-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
+        .log-container { background: var(--bg-primary); border-radius: 12px; padding: 16px; max-height: 300px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; }
+        .log-entry { display: flex; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
+        .log-time { color: var(--text-secondary); white-space: nowrap; }
+        .log-type { font-weight: 600; min-width: 60px; }
         .log-type.info { color: var(--accent-blue); }
         .log-type.route { color: var(--accent-green); }
         .log-type.error { color: var(--accent-red); }
         .log-type.warn { color: var(--accent-yellow); }
+        .config-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+        .config-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .config-key { color: var(--text-secondary); }
+        .config-val { font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); }
+        #ws-status { transition: all 0.3s; }
+        .uptime-timer { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--accent-cyan); }
 
-        .config-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
+        /* ── Prompt Tester ── */
+        .prompt-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .prompt-row { display: flex; gap: 12px; margin-bottom: 16px; }
+        .prompt-input {
+            flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px 18px; color: var(--text-primary); font-size: 15px;
+            font-family: inherit; outline: none; transition: border-color 0.2s;
         }
-
-        .config-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 14px;
+        .prompt-input:focus { border-color: var(--accent-blue); }
+        .prompt-input::placeholder { color: var(--text-secondary); }
+        .btn {
+            padding: 14px 24px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
         }
-
-        .config-key {
-            color: var(--text-secondary);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
         }
-
-        .config-val {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-cyan);
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .result-box {
+            background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+            min-height: 60px; max-height: 200px; overflow-y: auto; display: none;
         }
-
-        #ws-status {
-            transition: all 0.3s;
+        .result-box.visible { display: block; }
+        .result-label { color: var(--text-secondary); font-size: 12px; margin-bottom: 8px; }
+        .result-node { color: var(--accent-green); font-weight: 600; }
+        .result-type { color: var(--accent-purple); }
+        .result-model { color: var(--accent-cyan); }
+        .result-latency { color: var(--accent-yellow); }
+        .quick-prompts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .quick-btn {
+            padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+            background: var(--bg-input); color: var(--text-secondary); font-size: 12px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
         }
-
-        .uptime-timer {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 16px;
-            color: var(--accent-cyan);
-        }
+        .quick-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -348,6 +171,27 @@
         </div>
     </div>
 
+    <!-- Prompt Tester -->
+    <div class="prompt-section">
+        <div class="chart-title">🎯 Prompt Tester</div>
+        <div class="quick-prompts">
+            <button class="quick-btn" onclick="setPrompt('Write a Python function to calculate fibonacci numbers')">Python code</button>
+            <button class="quick-btn" onclick="setPrompt('Analyze this image and describe it')">Vision</button>
+            <button class="quick-btn" onclick="setPrompt('Calculate statistics from this CSV data')">Data</button>
+            <button class="quick-btn" onclick="setPrompt('Check for security vulnerabilities in this code')">Security</button>
+            <button class="quick-btn" onclick="setPrompt('Explain quantum computing in detail with examples')">Reasoning</button>
+            <button class="quick-btn" onclick="setPrompt('Tell me a joke')">Chat</button>
+        </div>
+        <div class="prompt-row">
+            <input type="text" class="prompt-input" id="prompt-input" placeholder="Type a prompt to test routing..." onkeydown="if(event.key==='Enter')sendPrompt()">
+            <button class="btn btn-primary" id="send-btn" onclick="sendPrompt()">Route →</button>
+        </div>
+        <div class="result-box" id="result-box">
+            <div class="result-label">Routing Result:</div>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
     <!-- Node Cards -->
     <div class="nodes-grid" id="nodes-grid"></div>
 
@@ -365,22 +209,10 @@
         </div>
         <div class="config-section">
             <div class="chart-title">System Config</div>
-            <div class="config-row">
-                <span class="config-key">Version</span>
-                <span class="config-val">0.4.0</span>
-            </div>
-            <div class="config-row">
-                <span class="config-key">Uptime</span>
-                <span class="config-val uptime-timer" id="uptime">00:00:00</span>
-            </div>
-            <div class="config-row">
-                <span class="config-key">WebSocket</span>
-                <span class="config-val">Connected</span>
-            </div>
-            <div class="config-row">
-                <span class="config-key">Last Update</span>
-                <span class="config-val" id="last-update">—</span>
-            </div>
+            <div class="config-row"><span class="config-key">Version</span><span class="config-val">0.5.0</span></div>
+            <div class="config-row"><span class="config-key">Uptime</span><span class="config-val uptime-timer" id="uptime">00:00:00</span></div>
+            <div class="config-row"><span class="config-key">WebSocket</span><span class="config-val">Connected</span></div>
+            <div class="config-row"><span class="config-key">Last Update</span><span class="config-val" id="last-update">—</span></div>
         </div>
     </div>
 
@@ -391,191 +223,75 @@
     </div>
 
     <script>
-        // ---- State ----
-        let ws = null;
-        let wsReconnectDelay = 1000;
-        let startTime = Date.now();
+        let ws = null; let wsReconnectDelay = 1000; let startTime = Date.now();
         let logEntries = [];
         let requestData = { labels: [], values: [] };
         let loadData = { labels: [], values: [] };
 
-        // ---- Charts ----
-        const requestsCtx = document.getElementById('requests-chart').getContext('2d');
-        const requestsChart = new Chart(requestsCtx, {
+        // ── Charts ──
+        const requestsChart = new Chart(document.getElementById('requests-chart').getContext('2d'), {
             type: 'line',
-            data: {
-                labels: requestData.labels,
-                datasets: [{
-                    label: 'Requests',
-                    data: requestData.values,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-                },
-                animation: { duration: 300 }
-            }
+            data: { labels: [], datasets: [{ label: 'Requests', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true } }, animation: { duration: 300 } }
         });
 
-        const loadCtx = document.getElementById('load-chart').getContext('2d');
-        const loadChart = new Chart(loadCtx, {
+        const loadChart = new Chart(document.getElementById('load-chart').getContext('2d'), {
             type: 'bar',
-            data: {
-                labels: loadData.labels,
-                datasets: [{
-                    label: 'Current Load',
-                    data: loadData.values,
-                    backgroundColor: loadData.labels.map(() => '#22c55e'),
-                    borderRadius: 6,
-                    barThickness: 40,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-                },
-                animation: { duration: 300 }
-            }
+            data: { labels: [], datasets: [{ label: 'Load', data: [], backgroundColor: '#22c55e', borderRadius: 6, barThickness: 40 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true } }, animation: { duration: 300 } }
         });
 
-        // ---- WebSocket ----
+        // ── WebSocket ──
         function connectWS() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
             ws = new WebSocket(`${proto}//${location.host}/ws/metrics`);
-
-            ws.onopen = () => {
-                document.getElementById('ws-status').style.background = 'var(--accent-green)';
-                document.getElementById('ws-text').textContent = 'Live';
-                wsReconnectDelay = 1000;
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                updateDashboard(data);
-            };
-
-            ws.onclose = () => {
-                document.getElementById('ws-status').style.background = 'var(--accent-red)';
-                document.getElementById('ws-text').textContent = 'Reconnecting...';
-                setTimeout(connectWS, wsReconnectDelay);
-                wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000);
-            };
-
-            ws.onerror = () => ws.close();
+            ws.onopen = () => { document.getElementById('ws-status').style.background = 'var(--accent-green)'; document.getElementById('ws-text').textContent = 'Live'; wsReconnectDelay = 1000; };
+            ws.onmessage = (event) => { const data = JSON.parse(event.data); updateDashboard(data); };
+            ws.onclose = () => { document.getElementById('ws-status').style.background = 'var(--accent-red)'; document.getElementById('ws-text').textContent = 'Reconnecting...'; setTimeout(connectWS, wsReconnectDelay); wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000); };
         }
 
-        // ---- Dashboard Updates ----
+        // ── Dashboard ──
         function updateDashboard(data) {
             const now = new Date().toLocaleTimeString();
             document.getElementById('last-update').textContent = now;
-
-            // Summary
             document.getElementById('healthy-count').textContent = `${data.healthy_count}/${data.total_nodes}`;
             document.getElementById('strategy').textContent = data.strategy.replace(/_/g, ' ');
-
             let totalReq = 0, totalErr = 0;
-            Object.values(data.nodes).forEach(n => {
-                totalReq += n.requests;
-                totalErr += n.errors;
-            });
+            Object.values(data.nodes).forEach(n => { totalReq += n.requests; totalErr += n.errors; });
             document.getElementById('total-requests').textContent = totalReq.toLocaleString();
             document.getElementById('total-errors').textContent = totalErr.toLocaleString();
             document.getElementById('error-rate').textContent = totalReq > 0 ? ((totalErr/totalReq)*100).toFixed(1) + '%' : '0%';
 
-            // Node cards
             const nodesGrid = document.getElementById('nodes-grid');
             nodesGrid.innerHTML = '';
-            const chartLabels = [];
-            const chartValues = [];
-
+            const chartLabels = [], chartValues = [];
             Object.entries(data.nodes).forEach(([name, info]) => {
                 const loadPct = info.total_capacity > 0 ? Math.round((info.load / info.total_capacity) * 100) : 0;
                 const loadClass = loadPct < 50 ? 'low' : loadPct < 80 ? 'medium' : 'high';
                 const statusClass = info.healthy ? 'healthy' : 'unhealthy';
-                const statusText = info.healthy ? '● Healthy' : '● Unhealthy';
-
-                const card = document.createElement('div');
-                card.className = 'node-card';
+                const card = document.createElement('div'); card.className = 'node-card';
                 card.innerHTML = `
-                    <div class="node-header">
-                        <span class="node-name">${name}</span>
-                        <span class="node-status ${statusClass}">${statusText}</span>
-                    </div>
+                    <div class="node-header"><span class="node-name">${name}</span><span class="node-status ${statusClass}">${info.healthy ? '● Healthy' : '● Unhealthy'}</span></div>
                     <div class="node-model">${info.model}</div>
-                    <div class="load-bar-container">
-                        <div class="load-bar-label">
-                            <span>Load</span>
-                            <span>${info.load} / ${info.total_capacity} (${loadPct}%)</span>
-                        </div>
-                        <div class="load-bar">
-                            <div class="load-bar-fill ${loadClass}" style="width: ${loadPct}%"></div>
-                        </div>
-                    </div>
+                    <div class="load-bar-container"><div class="load-bar-label"><span>Load</span><span>${info.load} / ${info.total_capacity} (${loadPct}%)</span></div>
+                    <div class="load-bar"><div class="load-bar-fill ${loadClass}" style="width: ${loadPct}%"></div></div></div>
                     <div class="stats-row">
-                        <div class="stat-item">
-                            <div class="stat-value" style="color: var(--accent-blue)">${info.requests}</div>
-                            <div class="stat-label">Requests</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" style="color: var(--accent-purple)">${(info.tokens/1000).toFixed(1)}K</div>
-                            <div class="stat-label">Tokens</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" style="color: ${info.errors > 0 ? 'var(--accent-red)' : 'var(--accent-green)'}">${info.errors}</div>
-                            <div class="stat-label">Errors</div>
-                        </div>
-                    </div>
-                `;
+                        <div class="stat-item"><div class="stat-value" style="color:var(--accent-blue)">${info.requests}</div><div class="stat-label">Requests</div></div>
+                        <div class="stat-item"><div class="stat-value" style="color:var(--accent-purple)">${(info.tokens/1000).toFixed(1)}K</div><div class="stat-label">Tokens</div></div>
+                        <div class="stat-item"><div class="stat-value" style="color:${info.errors>0?'var(--accent-red)':'var(--accent-green)'}">${info.errors}</div><div class="stat-label">Errors</div></div>
+                    </div>`;
                 nodesGrid.appendChild(card);
-
-                chartLabels.push(name);
-                chartValues.push(info.load);
-
-                // Log entry
+                chartLabels.push(name); chartValues.push(info.load);
                 addLogEntry('info', `${name}: ${info.healthy ? 'healthy' : 'unhealthy'}`);
             });
 
-            // Update charts
-            requestData.labels.push(now);
-            requestData.values.push(totalReq);
-            if (requestData.labels.length > 30) {
-                requestData.labels.shift();
-                requestData.values.shift();
-            }
-            requestsChart.data.labels = [...requestData.labels];
-            requestsChart.data.datasets[0].data = [...requestData.values];
-            requestsChart.update();
+            requestData.labels.push(now); requestData.values.push(totalReq);
+            if (requestData.labels.length > 30) { requestData.labels.shift(); requestData.values.shift(); }
+            requestsChart.data.labels = [...requestData.labels]; requestsChart.data.datasets[0].data = [...requestData.values]; requestsChart.update();
 
-            loadChart.data.labels = chartLabels;
-            loadChart.data.datasets[0].data = chartValues;
-            loadChart.update();
-
-            // Color load bars based on values
-            loadChart.data.datasets[0].backgroundColor = loadData.labels.map(() => {
-                // We'll compute this from chartValues
-                return '#22c55e';
-            });
-            // Dynamically color bars
+            loadChart.data.labels = chartLabels; loadChart.data.datasets[0].data = chartValues;
             const maxLoad = Math.max(...chartValues, 1);
-            loadChart.data.datasets[0].backgroundColor = chartValues.map(v => {
-                const pct = v / maxLoad;
-                if (pct < 0.33) return '#22c55e';
-                if (pct < 0.66) return '#eab308';
-                return '#ef4444';
-            });
+            loadChart.data.datasets[0].backgroundColor = chartValues.map(v => { const pct = v/maxLoad; if(pct<0.33) return '#22c55e'; if(pct<0.66) return '#eab308'; return '#ef4444'; });
             loadChart.update();
         }
 
@@ -583,27 +299,58 @@
             const now = new Date().toLocaleTimeString();
             logEntries.unshift({ time: now, type, message });
             if (logEntries.length > 50) logEntries.pop();
-
-            const container = document.getElementById('log-container');
-            container.innerHTML = logEntries.map(e =>
-                `<div class="log-entry">
-                    <span class="log-time">${e.time}</span>
-                    <span class="log-type ${e.type}">${e.type.toUpperCase()}</span>
-                    <span>${e.message}</span>
-                </div>`
-            ).join('');
+            document.getElementById('log-container').innerHTML = logEntries.map(e => `<div class="log-entry"><span class="log-time">${e.time}</span><span class="log-type ${e.type}">${e.type.toUpperCase()}</span><span>${e.message}</span></div>`).join('');
         }
 
-        // Uptime timer
+        // ── Prompt Tester ──
+        function setPrompt(text) { document.getElementById('prompt-input').value = text; document.getElementById('prompt-input').focus(); }
+
+        async function sendPrompt() {
+            const input = document.getElementById('prompt-input');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+            const btn = document.getElementById('send-btn');
+            const resultBox = document.getElementById('result-box');
+            const resultContent = document.getElementById('result-content');
+
+            btn.disabled = true; btn.textContent = '⏳';
+            resultBox.classList.add('visible');
+            resultContent.innerHTML = '<span style="color:var(--accent-yellow)">Routing...</span>';
+
+            try {
+                const resp = await fetch('/route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await resp.json();
+                if (data.error) {
+                    resultContent.innerHTML = `<span style="color:var(--accent-red)">❌ Error: ${data.error}</span>`;
+                } else {
+                    resultContent.innerHTML = `
+                        <div>→ <span class="result-node">${data.node}</span> <span class="result-model">(${data.model})</span></div>
+                        <div>Type: <span class="result-type">${data.task_type}</span> | Load: ${data.load}/${data.total_capacity}</div>
+                        <div>Latency: <span class="result-latency">${data.latency_ms?.toFixed(2) || 0}ms</span></div>
+                    `;
+                    addLogEntry('route', `${prompt.slice(0, 40)}... → ${data.node} (${data.task_type})`);
+                }
+            } catch (e) {
+                resultContent.innerHTML = `<span style="color:var(--accent-red)">❌ Network error: ${e.message}</span>`;
+            } finally {
+                btn.disabled = false; btn.textContent = 'Route →';
+            }
+        }
+
+        // ── Uptime ──
         setInterval(() => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
-            const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
-            const s = String(elapsed % 60).padStart(2, '0');
-            document.getElementById('uptime').textContent = `${h}:${m}:${s}`;
+            document.getElementById('uptime').textContent = [
+                String(Math.floor(elapsed/3600)).padStart(2,'0'),
+                String(Math.floor((elapsed%3600)/60)).padStart(2,'0'),
+                String(elapsed%60).padStart(2,'0')
+            ].join(':');
         }, 1000);
 
-        // Init
         connectWS();
         addLogEntry('info', 'Dashboard initialized');
     </script>
