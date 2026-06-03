@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viberouter"
+version = "1.0.0"
+description = "AI Coding Agent Router — Route tasks to the best model, save up to 90% on API costs"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Mark Aardenne", email = "mark@4rconsultancy.nl"},
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pydantic>=2.0",
+    "httpx>=0.24.0",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+    "tiktoken>=0.5.0",
+    "aiofiles>=23.0",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+viberouter = "viberouter.cli:main"
+
+[project.urls]
+"Homepage" = "https://github.com/aardenne/viberouter"
+"Repository" = "https://github.com/aardenne/viberouter"
+"Bug Tracker" = "https://github.com/aardenne/viberouter/issues"
+"Changelog" = "https://github.com/aardenne/viberouter/releases"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
