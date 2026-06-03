@@ -1,297 +1,150 @@
-# VibeRouter 🚀
+# VibeRouter
 
-> **AI Coding Agent Router — Route tasks to the best model, save up to 90% on API costs**
+> **AI coding agent router — automatically route tasks to the best model, saving up to 90% on API costs**
 
 [![PyPI version](https://img.shields.io/pypi/v/viberouter.svg)](https://pypi.org/project/viberouter/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/status-beta-orange.svg)]()
+[![Tests](https://github.com/aardenne/viberouter/actions/workflows/ci.yml/badge.svg)](https://github.com/aardenne/viberouter/actions)
 
-## 🎯 What is VibeRouter?
+## What is VibeRouter?
 
-VibeRouter is an intelligent routing layer for AI coding agents. It analyzes your task requirements and automatically selects the optimal model/provider combination based on:
+VibeRouter is an intelligent routing layer for AI coding tasks. It analyzes your task requirements and automatically selects the optimal model from a pool of providers based on cost, speed, and quality trade-offs.
 
-- **Cost efficiency** — Route simple tasks to cheap models, save money
-- **Performance** — Route complex tasks to powerful models when needed
-- **Latency** — Minimize wait time for time-sensitive operations
-- **Quality** — Match model capability to task complexity
+Current coding agents (Claude Code, Codex, Cursor, OpenCode) each use a single model chain. You either pay premium prices for everything, or accept lower quality with cheap models. VibeRouter gives you both: automatic model selection that optimizes for cost, speed, and quality on every task.
 
-### Why VibeRouter?
-
-Current AI coding agents (Claude Code, OpenAI Codex, Cursor, OpenCode) each use a single model chain. You either pay for the expensive model for everything, or accept lower quality with cheap models.
-
-VibeRouter gives you the best of both worlds: **automatic model selection** that optimizes for cost, speed, and quality on every task.
-
-**Real-world savings**: Teams using VibeRouter report **60-90% reduction** in monthly API costs while maintaining code quality.
-
-## ⚡ Quick Start
+## Installation
 
 ```bash
 pip install viberouter
 ```
 
+## Quick Start
+
 ```python
 from viberouter import Router, Provider
 
-# Configure your providers
 router = Router(
     providers=[
-        Provider("openai", model="gpt-4o", max_cost=0.15, max_latency=3),
-        Provider("openrouter", model="meta-llama/llama-3.1-70b", max_cost=0.02, max_latency=5),
-        Provider("local", model="qwen3.6-35b", max_cost=0, max_latency=10),
+        Provider(name="openai", model="gpt-4o", cost_per_token=0.00001, quality_score=0.95),
+        Provider(name="openrouter", model="meta-llama/llama-3.1-70b", cost_per_token=0.000003, quality_score=0.85),
+        Provider(name="local", model="qwen3.6-35b", cost_per_token=0, quality_score=0.75),
     ],
     strategy="cost_optimized"  # or "speed_optimized", "quality_optimized", "balanced"
 )
 
 # Route a task to the best model
-result = await router.route("Write a FastAPI endpoint for user registration")
-print(f"Used model: {result.model}")
-print(f"Cost: ${result.cost:.4f}")
-print(f"Latency: {result.latency:.2f}s")
+result = router.route("Write a FastAPI endpoint for user registration")
+print(f"Used: {result['model']} | Cost: ${result['cost']:.4f} | Latency: {result['latency']:.1f}s")
 ```
 
-## 🎯 Core Features
+## Core Features
 
 ### Smart Task Classification
-Automatically classifies tasks by:
-- **Complexity** — Simple, moderate, complex, expert
-- **Type** — Code generation, debugging, refactoring, explanation, planning
-- **Context window** — Minimal, medium, large, massive
+
+Automatically classifies tasks by **complexity** (trivial/simple/moderate/complex/expert) and **type** (code generation, debugging, refactoring, testing, documentation, planning). The classifier uses regex patterns, keyword matching, and token estimation.
 
 ### Multi-Strategy Routing
-- **Cost Optimized** — Minimize spend without quality degradation
-- **Speed Optimized** — Fastest response for time-sensitive tasks
-- **Quality Optimized** — Best quality for critical code changes
-- **Balanced** — Smart mix based on task type
 
-### Provider Agnostic
-Works with any AI provider:
-- OpenAI (GPT-4o, GPT-4, GPT-3.5)
-- Anthropic (Claude)
-- Google (Gemini)
-- OpenRouter (100+ models)
-- Local models (vLLM, llama.cpp)
-- Any OpenAI-compatible endpoint
+- **Cost Optimized** — Minimize spend without dropping below a quality threshold
+- **Speed Optimized** — Route to fastest providers for time-sensitive tasks
+- **Quality Optimized** — Always pick the best model regardless of cost
+- **Balanced** — Smart mix based on task complexity
 
-### MCP Integration
-Full Model Context Protocol support for seamless tool integration.
+### Provider Pool
 
-### Cost Tracking & Analytics
-- Real-time cost monitoring per task
-- Historical spending analytics
-- Provider performance dashboards
-- Cost-per-task optimization recommendations
+Configure any number of providers with individual performance profiles:
 
-### Fallback Chain
-Automatic failover when providers are unavailable or exceed latency/cost thresholds.
+| Provider | Models | Typical Cost |
+|----------|--------|-------------|
+| OpenAI | gpt-4o, gpt-4, gpt-3.5 | Premium |
+| OpenRouter | 100+ models (Llama, Gemini, etc.) | Mid-range |
+| Local | vLLM, llama.cpp (Qwen, Llama, etc.) | Free |
+| Anthropic | Claude Sonnet, Haiku | Premium |
 
-## 📊 Performance Comparison
+### Cost & Performance Tracking
 
-| Task Type | Without Router | With VibeRouter | Savings |
-|-----------|---------------|-----------------|---------|
-| Simple formatting | GPT-4o ($0.03) | Qwen3-35B local ($0.00) | **100%** |
-| Bug fix explanation | Claude ($0.05) | Llama-3-70B ($0.01) | **80%** |
-| Complex refactoring | Claude ($0.08) | Claude ($0.08) | 0%* |
-| Code review | GPT-4o ($0.04) | Gemini Pro ($0.01) | **75%** |
-
-*Complex tasks correctly routed to premium models to maintain quality
-
-## 🔧 Installation
-
-### pip (Recommended)
-```bash
-pip install viberouter
-```
-
-### From Source
-```bash
-git clone https://github.com/aardenne/viberouter.git
-cd viberouter
-pip install -e .
-```
-
-### Docker
-```bash
-docker build -t viberouter .
-docker run viberouter --help
-```
-
-## 📖 Configuration
-
-Create a `.viberouter.yml` configuration file:
-
-```yaml
-default_strategy: cost_optimized
-
-providers:
-  openai:
-    api_key: ${OPENAI_API_KEY}
-    models:
-      - name: gpt-4o
-        max_cost: 0.15
-        max_latency: 3
-        weight: 1.0
-      - name: gpt-3.5-turbo
-        max_cost: 0.002
-        max_latency: 2
-        weight: 0.5
-  
-  openrouter:
-    api_key: ${OPENROUTER_API_KEY}
-    models:
-      - name: meta-llama/llama-3.1-70b
-        max_cost: 0.02
-        max_latency: 5
-        weight: 0.8
-      - name: google/gemini-pro
-        max_cost: 0.005
-        max_latency: 3
-        weight: 0.7
-  
-  local:
-    base_url: http://localhost:8081/v1
-    models:
-      - name: qwen3.6-35b
-        max_cost: 0
-        max_latency: 10
-        weight: 0.9
-
-routing:
-  min_success_rate: 0.95
-  max_retries: 2
-  fallback_on_error: true
-  cache_enabled: true
-  cache_ttl: 3600  # seconds
-```
-
-## 🚀 Advanced Usage
-
-### Custom Routing Rules
-```python
-from viberouter import Router, CustomRule
-
-router.add_rule(
-    CustomRule(
-        pattern=r"^refactor.*",  # Regex pattern
-        preferred_model="qwen3.6-35b",  # For refactoring, use local
-        fallback="gpt-4o",
-        reason="Refactoring doesn't need premium models"
-    )
-)
-```
+Every routing decision tracks:
+- Cost per token and total cost
+- Latency (p99)
+- Provider reliability
+- Task classification
 
 ### Batch Routing
-```python
-# Route multiple tasks efficiently
-tasks = [
-    "Add error handling to database layer",
-    "Fix login authentication bug",
-    "Optimize database queries",
-]
 
-results = await router.route_batch(tasks)
-print(f"Total cost: ${sum(r.cost for r in results):.4f}")
+Route multiple tasks efficiently with a single call:
+
+```python
+results = router.route_batch([
+    "Fix login bug",
+    "Add error handling",
+    "Optimize queries",
+])
 ```
 
-### Cost Monitoring
-```python
-from viberouter.analytics import CostDashboard
+### Fallback Chain
 
-dashboard = CostDashboard()
-dashboard.report()  # Prints daily cost breakdown
-dashboard.save_report("cost-report.json")
-```
+Automatic failover when providers are unavailable or exceed latency thresholds.
 
-### CLI Usage
+## CLI Usage
+
 ```bash
 # Quick route a task
 viberouter "Write a FastAPI endpoint"
 
 # Route with specific strategy
-viberouter --strategy speed "Debug this error"
+viberouter --strategy quality "Refactor auth module"
 
-# Get cost report
+# Get cost report for last 7 days
 viberouter cost-report --last 7d
 
 # Interactive mode
 viberouter --interactive
 ```
 
-## 🎨 Architecture
+## Benchmarks
+
+Tested on 10,000 real-world coding tasks:
+
+| Metric | Value |
+|--------|-------|
+| Average cost per task | $0.008 (vs $0.045 without routing) |
+| Quality maintained | 94% equivalent to premium-only |
+| Simple task latency | 3x faster via local models |
+| Classification accuracy | 96% |
+
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     VibeRouter Layer                     │
-├─────────────────────────────────────────────────────────┤
-│  Task Classifier │ Cost Model │ Performance Model │      │
-│  ─────────────── │ ────────── │ ─────────────── │      │
-│  Complexity      │ $/token    │ tokens/sec      │      │
-│  Task Type       │ $/request  │ latency         │      │
-│  Context Window  │ $/hour     │ success rate    │      │
-├─────────────────────────────────────────────────────────┤
-│                    Routing Engine                       │
-│          Scores providers → selects best one            │
-├─────────────────────────────────────────────────────────┤
-│                   Provider Pool                          │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
-│  │ OpenAI   │ │ Anthropic│ │ Local    │ │ OpenRouter│ │
-│  │ GPT-4o   │ │ Claude   │ │ Qwen3    │ │ 100+     │  │
-│  │ GPT-3.5  │ │ Haiku    │ │ Llama    │ │ models   │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│           Task Classifier            │
+│  Complexity ──┐                     │
+│  Task Type ────┼──► Routing Engine  │
+│  Token Count ─┘                     │
+├─────────────────────────────────────┤
+│         Provider Pool                │
+│  ┌────────┐ ┌────────┐ ┌──────────┐│
+│  │OpenAI  │ │ Open   │ │ Local    ││
+│  │GPT-4o  │ │Router  │ │ Qwen/Llama││
+│  └────────┘ └────────┘ └──────────┘│
+└─────────────────────────────────────┘
 ```
 
-## 📈 Benchmarks
-
-Tested on 10,000 real-world coding tasks over 30 days:
-
-- **Average cost per task**: $0.008 (vs $0.045 without routing)
-- **Quality score**: 94% equivalent to using only premium models
-- **Latency improvement**: 3x faster for simple tasks
-- **Task classification accuracy**: 96%
-
-## 🤝 Integrations
-
-### IDEs
-- VS Code (coming soon)
-- JetBrains (coming soon)
-- Cursor (native support)
-
-### CI/CD
-- GitHub Actions
-- GitLab CI
-- Jenkins
-
-### CI/CD Integration
-```yaml
-# .github/workflows/vibe-router.yml
-- name: AI Code Review
-  uses: aardenne/vibe-router-action@v1
-  with:
-    strategy: quality_optimized
-    provider: openrouter
-```
-
-## 📊 Roadmap
+## Roadmap
 
 - [x] Core routing engine
 - [x] Multi-provider support
-- [x] Cost tracking
+- [x] Cost tracking & analytics
 - [x] CLI interface
-- [ ] IDE plugins (VS Code, JetBrains)
-- [ ] Web dashboard
-- [ ] Team analytics
-- [ ] Auto-scaling provider pool
-- [ ] Fine-tuned router model
+- [x] Batch routing
+- [ ] VS Code / JetBrains IDE extensions
+- [ ] Team-wide analytics dashboard
+- [ ] Auto-scaling provider pool based on real-time benchmarks
 
-## 📄 License
+## License
 
-MIT License — feel free to use for personal and commercial projects.
+MIT
 
-## 🙏 Contributors
+## Author
 
-- [Mark Aardenne](https://github.com/aardenne) — Creator
-
----
-
-**Built with ❤️ by 4R Consultancy** | [ sx1.nl ](https://sx1.nl)
+Mark Aardenne — [sx1.nl](https://sx1.nl)
